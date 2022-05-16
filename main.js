@@ -169,7 +169,7 @@ class GameManager {
   }
 
   setSpeed() {
-    this.velocity = {
+    this.speed = {
       x: Math.random() * (Math.cos(this.angle) * 2 + 3) - 3,
       y: Math.random() * (Math.sin(this.angle) * 2 + 1) - 1,
     };
@@ -233,8 +233,8 @@ class Chase extends enemyElements {
 
 //Escape
 class Escape extends enemyElements {
-  constructor(x, y, square, color, velocity) {
-    super(x, y, color, velocity);
+  constructor(x, y, square, color, speed) {
+    super(x, y, color, speed);
     this.square = square;
   }
 
@@ -260,8 +260,8 @@ class Escape extends enemyElements {
 }
 
 class Random extends enemyElements {
-  constructor(x, y, radius, color, velocity) {
-    super(x, y, color, velocity);
+  constructor(x, y, radius, color, speed) {
+    super(x, y, color, speed);
     this.radius = radius;
   }
 
@@ -407,7 +407,7 @@ function spawnChasers() {
         manager.y,
         manager.radius,
         manager.color,
-        manager.velocity,
+        manager.speed,
         manager.recWidth,
         manager.recHeight
       )
@@ -435,7 +435,7 @@ function spawnEscapes() {
         manager.y,
         manager.radius,
         manager.color,
-        manager.velocity
+        manager.speed
       )
     );
 
@@ -463,7 +463,7 @@ function spawnRandoms() {
         manager.y,
         manager.radius,
         manager.color,
-        manager.velocity
+        manager.speed
       )
     );
 
