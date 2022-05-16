@@ -29,7 +29,7 @@ const fixed = document.querySelector(".fixed");
 const headerPoints = document.querySelector("h1");
 
 // Select header
-const startPanel = document.querySelector(".bg-white-start");
+const startPanel = document.querySelector(".header");
 // gameOver Panel
 const gameOverPanel = document.querySelector(".bg-white");
 
