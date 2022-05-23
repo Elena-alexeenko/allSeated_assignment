@@ -16,9 +16,6 @@ let scoreInterval = 1000;
 // Select canvas
 const canvas = document.querySelector("canvas");
 
-// Select score
-const score = document.querySelector("#score");
-
 // Select points
 const points = document.querySelector("#points");
 
@@ -80,7 +77,7 @@ class Player {
 class GameManager {
   constructor() {}
 
-  deleteAllElements() {
+  deleteAllEnemies() {
     while (espaces.length > 0) {
       espaces.pop();
     }
@@ -92,86 +89,17 @@ class GameManager {
     }
   }
 
-  initRandomsAngle() {
-    this.angle = Math.atan2(
-      this.y - Math.random() * (canvas.height * 0.9),
-      this.x - Math.random() * (canvas.width * 0.9)
-    );
-  }
-
-  setRandomPosition() {
-    this.x = Math.random() * (canvas.width * 0.9);
-    this.y = Math.random() * (canvas.height * 0.9);
-    // console.log(this.x, this.y);
-  }
-
-  setRandomRadius() {
-    this.radius = Math.random() * (40 - 20) + 20;
-  }
-
   colorPicker() {
-    this.color = "#";
+    var prefix = "#";
     const randomColor = Math.floor(Math.random() * 16777215).toString(16);
-    this.color = this.color + randomColor;
-  }
-
-  setEscapeRadius() {
-    this.radius = Math.random() * (80 - 30) + 30;
-  }
-
-  setEscapePosition() {
-    if (Math.random() < 0.5) {
-      this.x =
-        Math.random() < 0.5
-          ? Math.abs(0 - this.radius)
-          : Math.abs(player.x + this.radius * 2);
-      this.y = Math.random() * player.y + this.radius;
-    } else {
-      this.x = Math.random() * player.x;
-      this.y =
-        Math.random() < 0.5
-          ? Math.abs(0 - this.radius)
-          : player.y + 2 * this.radius;
-    }
-  }
-
-  initEscapeAngle() {
-    this.angle = Math.atan2(this.y - player.y, this.x - player.x);
-  }
-
-  setChaserRadius() {
-    this.radius = Math.random() * (80 - 30) + 30;
-  }
-
-  setChaserRecHeightAndHeight() {
-    this.recHeight = Math.random() * (50 - 10) + 10;
-    this.recWidth = Math.random() * (100 - 10) + 10;
-  }
-
-  setChaserPosition() {
-    if (Math.random() < 0.5) {
-      this.x =
-        Math.random() < 0.5
-          ? Math.abs(0 - this.radius * 2)
-          : Math.abs(canvas.width * 0.7 + this.radius);
-      this.y = Math.abs(Math.random() * canvas.height * 0.7);
-    } else {
-      this.x = Math.abs(Math.random() * canvas.width * 0.7);
-      this.y =
-        Math.random() < 0.5
-          ? Math.abs(0 - this.radius)
-          : Math.abs(canvas.height * 0.7 + this.radius);
-    }
-  }
-
-  initChaserAngle() {
-    this.angle = Math.atan2(player.y - this.y, player.x - this.x);
+    this.color = prefix + randomColor;
   }
 
   setSpeed() {
     this.speed = {
-      x: Math.random() * (Math.cos(this.angle) * 2 + 3) - 3,
-      y: Math.random() * (Math.sin(this.angle) * 2 + 1) - 1,
+      x: (Math.random() * (Math.cos(this.angle) * 2 + 3) - 3) / 100000000,
+
+      y: (Math.random() * (Math.sin(this.angle) * 2 + 1) - 1) / 100000000,
     };
   }
 }
@@ -186,8 +114,8 @@ class enemyElements {
   }
   update() {
     this.draw();
-    const newX = this.x + this.speed.x;
-    const newY = this.y + this.speed.y;
+    const newX = this.x + this.speed.x / 100000000;
+    const newY = this.y + this.speed.y / 100000000;
     if (newX > 40 && newX < canvas.width - 15) {
       this.x = this.x + this.speed.x;
     } else {
@@ -198,6 +126,7 @@ class enemyElements {
     } else {
       this.collidingWithBorder = true;
     }
+    this.move();
   }
 }
 
@@ -224,10 +153,49 @@ class Chase extends enemyElements {
   hitTarget() {
     cancelAnimationFrame(animationId);
     manager.deleteAllEnemies();
-    headerPoints.textContent = points.textContent;
+    headerPoints.textContent = score.textContent;
     fixed.style.display = "flex";
-    startPanel.style.display = "none";
     gameOverPanel.style.display = "flex";
+  }
+
+  setChaserRadius() {
+    this.radius = Math.random() * (80 - 30) + 30;
+  }
+
+  setColor(color) {
+    this.color = color;
+  }
+
+  setChaserRecHeightAndHeight() {
+    this.recHeight = Math.random() * (50 - 10) + 10;
+    this.recWidth = Math.random() * (100 - 10) + 10;
+  }
+
+  setChaserPosition() {
+    if (Math.random() < 0.5) {
+      this.x =
+        Math.random() < 0.5
+          ? Math.abs(0 - this.radius * 2)
+          : Math.abs(canvas.width * 0.7 + this.radius);
+      this.y = Math.abs(Math.random() * canvas.height * 0.7);
+    } else {
+      this.x = Math.abs(Math.random() * canvas.width * 0.7);
+      this.y =
+        Math.random() < 0.5
+          ? Math.abs(0 - this.radius)
+          : Math.abs(canvas.height * 0.7 + this.radius);
+    }
+  }
+
+  initChaserAngle() {
+    this.angle = Math.atan2(player.y + this.y, player.x + this.x);
+  }
+
+  move() {
+    this.initChaserAngle();
+    this.setChaserRadius();
+    this.setChaserPosition();
+    this.setChaserRecHeightAndHeight();
   }
 }
 
@@ -253,9 +221,39 @@ class Escape extends enemyElements {
   }
 
   hitTarget() {
-    points.textContent = parseInt(points.textContent) + 5;
+    score.textContent = parseInt(score.textContent) + 5;
     manager.setRandomPosition;
-    ctx.fillRect(this.x);
+    ctx.fillRect(this.x, this.y, this.square, this.square);
+  }
+
+  setEscapeRadius() {
+    this.radius = Math.random() * (80 - 30) + 30;
+  }
+
+  setEscapePosition() {
+    if (Math.random() < 0.5) {
+      this.x =
+        Math.random() < 0.5
+          ? Math.abs(0 - this.radius)
+          : Math.abs(player.x + this.radius * 2);
+      this.y = Math.random() * player.y + this.radius;
+    } else {
+      this.x = Math.random() * player.x;
+      this.y =
+        Math.random() < 0.5
+          ? Math.abs(0 - this.radius)
+          : player.y + 2 * this.radius;
+    }
+  }
+
+  initEscapeAngle() {
+    this.angle = Math.atan2(this.y - player.y, this.x - player.x);
+  }
+
+  move() {
+    this.setEscapeRadius();
+    this.setEscapePosition();
+    this.initEscapeAngle();
   }
 }
 
@@ -281,11 +279,33 @@ class Random extends enemyElements {
 
   hitTarget() {
     cancelAnimationFrame(animationId);
-    manager.deleteAllEnemies;
-    headerPoints.textContent = points.textContent;
+    manager.deleteAllEnemies();
+    headerPoints.textContent = score.textContent;
     fixed.style.display = "flex";
-    startPanel.style.display = "none";
     gameOverPanel.style.display = "flex";
+  }
+
+  initRandomsAngle() {
+    this.angle = Math.atan2(
+      this.y - Math.random() * (canvas.height * 0.9),
+      this.x - Math.random() * (canvas.width * 0.9)
+    );
+  }
+
+  setRandomPosition() {
+    this.x = Math.random() * (canvas.width * 0.9);
+    this.y = Math.random() * (canvas.height * 0.9);
+    // console.log(this.x, this.y);
+  }
+
+  setRandomRadius() {
+    this.radius = Math.random() * (40 - 20) + 20;
+  }
+
+  move() {
+    this.initRandomsAngle();
+    this.setRandomPosition();
+    this.setRandomRadius();
   }
 }
 
@@ -330,14 +350,6 @@ function animate() {
 
   // update the position of each chaser
   chases.forEach((chase, index) => {
-    if (chase.collidingWithBorder) {
-      manager.x = chase.x;
-      manager.y = chase.y;
-      manager.initChaserAngle();
-      manager.setSpeed();
-      chase.speed = manager.speed;
-      chase.collidingWithBorder = false;
-    }
     chase.update();
     const dist1 = Math.hypot(
       player.getPosition().x - chase.x,
@@ -348,6 +360,7 @@ function animate() {
       setTimeout(() => {
         // Game Over!
         chase.hitTarget();
+        manager.deleteAllEnemies();
       }, 0);
     }
   });
@@ -355,7 +368,7 @@ function animate() {
   // update the position of each escape
   espaces.forEach((escape, index) => {
     escape.update();
-    const dist2 = Math.hypot(player.x - escape.x, player.y - escape.y);
+    const dist2 = Math.hypot(player.x + escape.x, player.y + escape.y);
 
     if (dist2 - player.radius < 10) {
       setTimeout(() => {
@@ -367,12 +380,6 @@ function animate() {
 
   // update the position of each random
   randoms.forEach((random, index) => {
-    if (random.collidingWithBorder) {
-      manager.initRandomsAngle();
-      manager.setSpeed();
-      random.speed = manager.speed;
-      random.collidingWithBorder = false;
-    }
     random.update();
 
     const dist3 = Math.hypot(player.x - random.x, player.y - random.y);
@@ -380,7 +387,7 @@ function animate() {
     if (dist3 - random.radius - player.radius < 1) {
       setTimeout(() => {
         // Game Over!
-
+        manager.deleteAllEnemies();
         random.hitTarget();
       }, 0);
     }
@@ -393,26 +400,12 @@ function spawnChasers() {
   let interval = setInterval(() => {
     currentChasers += 1;
 
-    manager.setChaserRadius();
-    manager.setChaserRecHeightAndHeight();
-    manager.setChaserPosition();
-    manager.initChaserAngle();
     manager.setSpeed();
     manager.colorPicker();
-
-    // rectangle
+    let a_chase;
     chases.push(
-      new Chase(
-        manager.x,
-        manager.y,
-        manager.radius,
-        manager.color,
-        manager.speed,
-        manager.recWidth,
-        manager.recHeight
-      )
+      (a_chase = new Chase(0, 0, manager.color, manager.speed, 0, 0))
     );
-
     if (currentChasers === maxEnemies) {
       clearInterval(interval);
     }
@@ -423,22 +416,12 @@ function spawnEscapes() {
 
   let interval = setInterval(() => {
     currentEscapes += 1;
-    manager.setEscapeRadius();
-    manager.setEscapePosition();
-    manager.initEscapeAngle();
     manager.setSpeed();
     manager.colorPicker();
-
+    let an_escape;
     espaces.push(
-      new Escape(
-        manager.x,
-        manager.y,
-        manager.radius,
-        manager.color,
-        manager.speed
-      )
+      (an_escape = new Escape(0, 0, (0, 0), manager.color, manager.speed))
     );
-
     if (currentEscapes === maxEnemies) {
       clearInterval(interval);
     }
@@ -450,21 +433,12 @@ function spawnRandoms() {
 
   let interval = setInterval(() => {
     currentRandoms += 1;
-    manager.setRandomRadius();
-    manager.setRandomPosition();
-    manager.initRandomsAngle();
     manager.setSpeed();
     manager.colorPicker();
-
+    let a_random;
     // circle
     randoms.push(
-      new Random(
-        manager.x,
-        manager.y,
-        manager.radius,
-        manager.color,
-        manager.speed
-      )
+      (a_random = new Random(0, 0, 0, manager.color, manager.speed))
     );
 
     if (currentRandoms === maxEnemies) {
